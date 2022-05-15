@@ -1,22 +1,23 @@
 import hashlib
-from Crypto import Random
-from Crypto.Cipher import AES
+import base64
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Cipher import AES
 
 '''
 Thanks to
-http://stackoverflow.com/questions/12524994/encrypt-decrypt-using-pycrypto-aes-256
+https://stackoverflow.com/questions/12524994/encrypt-decrypt-using-pycrypto-aes-256
 '''
 class AESCipher:
 
-    def __init__(self, key): 
-        self.bs = 32	# Block size
-        self.key = hashlib.sha256(key.encode()).digest()	# 32 bit digest
+    def __init__(self, key):
+        self.bs = AES.block_size
+        self.key = hashlib.sha256(b'16-character key').digest()	# 32 bit digest
 
     def encrypt(self, raw):
-        raw = self._pad(raw)
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return iv + cipher.encrypt(raw)
+        raw = base64.b64encode(self._pad(raw.encode('utf8')))
+        iv = get_random_bytes(AES.block_size)
+        cipher = AES.new(key=self.key, mode= AES.MODE_CFB,iv= iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
 
     def decrypt(self, enc):
         iv = enc[:AES.block_size]
@@ -29,3 +30,8 @@ class AESCipher:
     @staticmethod
     def _unpad(s):
         return s[:-ord(s[len(s)-1:])]
+
+
+#%%
+
+#%%
